@@ -1,6 +1,6 @@
 galaxy_info:
   author: Christian Aluya
-  description: Senior Platform Engineer
+  description: simple ansible role to install mysql database
   company: Just simply ask
 
   # If the issue tracker for your role is not on github, uncomment the
