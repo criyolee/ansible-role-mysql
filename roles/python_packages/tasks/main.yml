@@ -1,0 +1,51 @@
+---
+# tasks file for python_packages
+- name: 'Update apt repo and cache on all Debian/Ubuntu boxes'
+  apt: 
+    update_cache: yes
+    cache_valid_time: 3600
+  become: "True"
+
+- name: 'Install all required dependencies'
+  apt:
+    name: ['python3', 'python-setuptools', 'python-dev', 'libmysqlclient-dev', 'build-essential', 'python3-pip', 'python3-mysqldb', 'python3-pymysql']
+    state: present
+  become: yes
+
+- name: 'Install pip dependencies'
+  pip:
+    name: ['pymysql']
+    state: present
+  become: yes
+
+- name: Check if Python file exists
+  ansible.builtin.stat:
+    path: "/usr/bin/python"
+  register: file_name
+  become: yes
+
+- name: 'Backup Python2'
+  copy:
+    src: /usr/bin/python
+    dest: /usr/bin/python2.bkp
+    owner: root
+    group: root
+    mode: 0755
+  when: file_name.stat.exists
+  become: yes
+
+- name: Check if file Python3 exists
+  ansible.builtin.stat:
+    path: "/usr/bin/python3"
+  register: file_name
+  become: yes
+
+- name: 'Change python2 to python3'
+  copy:
+    src: /usr/bin/python3
+    dest: /usr/bin/python
+    owner: root
+    group: root
+    mode: 0755
+  when: file_name.stat.exists
+  become: yes

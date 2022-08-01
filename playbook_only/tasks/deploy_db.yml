@@ -1,0 +1,39 @@
+- name: 'Install MySQL database'
+  apt:
+    name: ['mysql-server','mysql-client']
+    state: present
+  become: yes
+
+- name: 'Start MySQL Service'
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+  become: yes
+
+- name: 'Create the credential file for mysql db'
+  copy:
+    dest: /root/.my.cnf
+    backup: yes
+    owner: root
+    group: root
+    mode: 0775
+    content: |
+      [client]
+      user="{{ root_user }}"
+      password="{{ root_password }}"
+
+- name: 'Create Application Database'
+  mysql_db:
+    name: "{{ db_name}}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock # also add the ".my.cnf" having the root user and root password in $HOME/.my.cnf
+
+- name: 'Create Database User'
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_user_password }}"
+    priv: '*.*:ALL'
+    host: '%'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock

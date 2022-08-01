@@ -1,0 +1,7 @@
+db_name: employee_db
+db_user: db_user
+db_user_password: Passw0rd
+root_user: root
+root_password: ifG0dbi4mi
+ansible_host: 192.168.56.4
+ansible_ssh_private_key_file: "/root/.ssh/ansible"

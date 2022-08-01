@@ -1,0 +1,18 @@
+- name: 'Install Python Flask dependencies'
+  pip:
+    name: ['flask', 'flask-mysql']
+    state: present
+  become: yes
+
+- name: 'Copy the source code to remote web server'
+  copy:
+    src: app.py
+    dest: /opt/app.py
+
+- name: 'Start Web Server'
+  shell: FLASK_APP=/opt/app.py nohup flask run --host=0.0.0.0 &
+
+# - name: 'Start App Server'
+#   shell: |
+#     export FLASK_APP=/opt/app.py
+#     python /opt/app.py nohup flask run --host=0.0.0.0 &

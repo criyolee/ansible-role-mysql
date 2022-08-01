@@ -1,0 +1,70 @@
+-
+  name: Deploy a web application
+  hosts: app_servers
+  any_error_fatal: true ~ anisble will stop execution on all servers if a task fails in one of the servers
+  strategy: free # use free or serial, they are not mutual exclusive
+  serial: 20%  # either specify a percentage or batches as a list
+    - 2
+    - 3
+    - 5
+  vars:
+    db_name: employee_db
+    db_user: db_user
+    db_password: Passw0rd
+  tasks:
+    - name: Install dependencies
+      apt: name={{ item }} state=installed
+      with_items:
+       - python
+       - python-setuptools
+       - python-dev
+       - build-essential
+       - python-pip
+       - python-mysqldb
+
+    - name: Install MySQL database
+      apt:
+        name: "{{ item }}"
+        state:  installed
+      with_items:
+       - mysql-server
+       - mysql-client
+
+    - name: Start Mysql Service
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Create Application Database
+      mysql_db: name={{ db_name }} state=present
+
+    - name: Create Application DB User
+      mysql_user: name={{ db_user }} password={{ db_password }} priv='*.*:ALL' host='%' state='present'
+
+    - name: Install Python Flask dependencies
+      pip:
+        name: '{{ item }}'
+        state: present
+      with_items:
+       - flask
+       - flask-mysql
+
+    - name: Copy web-server code
+      copy: src=app.py dest=/opt/app.py
+
+    - name: Start web-application
+      shell: FLASK_APP=/opt/app.py nohup flask run --host=0.0.0.0 &
+
+    - name: 'Send Email'
+      mail: 
+        to: devops@corp.com
+        suject: Server Deployed!
+        body: Web Server Deployed Successfully
+      ignore_errors: yes
+
+    # check for any error in tre logs
+    - name: 'Check for error in the output logs'
+      command: cat /var/log/server.log
+      register: command_output
+      failed_when: "'ERROR' in command_output.stdout"
